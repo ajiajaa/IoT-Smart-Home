@@ -9,5 +9,5 @@ Features :
 6. Multiple topics has it own chart (-)
 7. UI (-)
 
-+ : implemented.
-- : not yet implemented.
+(+) : implemented.
+(-) : not yet implemented.
