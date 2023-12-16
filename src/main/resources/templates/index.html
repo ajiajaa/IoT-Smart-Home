@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-time Chart</title>
+</head>
+<body>
+<div>
+    <canvas id="realTimeChart"></canvas>
+</div>
+
+<script src="
+https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js
+"></script>
+<script src="
+https://cdn.jsdelivr.net/npm/stomp-websocket@2.3.4-next/lib/stomp.min.js
+"></script>
+<script src="
+https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js
+"></script>
+
+<script th:inline="javascript">
+    var stompClient = null;
+    var ctx = document.getElementById('realTimeChart').getContext('2d');
+    var data = {
+        labels: [],
+        datasets: [{
+            label: 'Humidity',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+            data: []
+        }]
+    };
+    var config = {
+        type: 'line',
+        data: data,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    };
+    var myChart = new Chart(ctx, config);
+
+    function connect() {
+        var socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            stompClient.subscribe('/topic/messages', function (message) {
+                updateChart(JSON.parse(message.body));
+            });
+        });
+    }
+
+    function updateChart(message) {
+        data.labels.push(data.labels.length);
+        data.datasets[0].data.push(message);
+        myChart.update();
+    }
+
+    connect();
+</script>
+</body>
+</html>
