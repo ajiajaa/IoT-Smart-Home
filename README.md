@@ -6,7 +6,7 @@ Features :
 3. Realtime chart(+)
 4. Data to chart (+)
 5. Subscribe multiple topics (+)
-6. Multiple topics has it own chart (-)
+6. Multiple topics has it own chart (+)
 7. UI (-)
 
 (+) : implemented.
