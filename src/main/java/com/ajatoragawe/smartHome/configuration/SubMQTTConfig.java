@@ -10,6 +10,8 @@ import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import java.util.Objects;
+
 @Configuration
 public class SubMQTTConfig {
 
@@ -26,17 +28,17 @@ public class SubMQTTConfig {
                 .handle((GenericHandler<String>) (payload, headers) -> {
                     System.out.println("New message!" + payload);
                     headers.forEach((k, v) -> System.out.println(k + "=" + v));
-                    // Send the message to the WebSocket endpoint
-                    messagingTemplate.convertAndSend("/topic/messages", payload);
+                    String topic = Objects.requireNonNull(headers.get("mqtt_receivedTopic")).toString();
+                    messagingTemplate.convertAndSend("/topic/messages", "{\"topic\":\"" + topic + "\",\"value\":" + payload + "}");
                     return null;
                 })
                 .get();
     }
 
+
     @Bean
     MqttPahoMessageDrivenChannelAdapter inboundAdapter(MqttPahoClientFactory clientFactory) {
         MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("consumer", clientFactory, topics);
-        adapter.setCompletionTimeout(5000); // Set a timeout if needed
         return adapter;
     }
 }

@@ -6,7 +6,10 @@
 </head>
 <body>
 <div>
-    <canvas id="realTimeChart"></canvas>
+    <canvas id="humidityChart"></canvas>
+</div>
+<div>
+    <canvas id="temperatureChart"></canvas>
 </div>
 
 <script src="
@@ -21,47 +24,84 @@ https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js
 
 <script th:inline="javascript">
     var stompClient = null;
-    var ctx = document.getElementById('realTimeChart').getContext('2d');
-    var data = {
-        labels: [],
-        datasets: [{
-            label: 'Humidity',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1,
-            data: []
-        }]
-    };
-    var config = {
-        type: 'line',
-        data: data,
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
+    var ctxHumidity = document.getElementById('humidityChart').getContext('2d');
+    var ctxTemperature = document.getElementById('temperatureChart').getContext('2d');
+    var charts = {};
+    var topics = ['humidityajat', 'temperatureajat'];
+
+    topics.forEach(function (topic) {
+        charts[topic] = createChart(topic);
+    });
+
+    function createChart(topic) {
+        var config = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: topic,
+                    backgroundColor: 'rgba(' + getRandomColor() + ', 0.2)',
+                    borderColor: 'rgba(' + getRandomColor() + ', 1)',
+                    borderWidth: 1,
+                    data: []
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
+        };
+
+        return new Chart(getContextByTopic(topic), config);
+    }
+
+    function getContextByTopic(topic) {
+        switch (topic) {
+            case 'humidityajat':
+                return ctxHumidity;
+            case 'temperatureajat':
+                return ctxTemperature;
+            default:
+                // in case kalo ada topik nyasar
+                console.error("Topik tidak diketahui: " + topic);
+                return null;
         }
-    };
-    var myChart = new Chart(ctx, config);
+    }
 
     function connect() {
         var socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function (frame) {
             stompClient.subscribe('/topic/messages', function (message) {
-                updateChart(JSON.parse(message.body));
+                var data = JSON.parse(message.body);
+                var topic = data.topic;
+
+                if (!charts[topic]) {
+                    console.error("Chart tidak ada untuk topik: " + topic);
+                    return;
+                }
+
+                var chart = charts[topic];
+                var dataset = chart.data.datasets[0];
+
+                dataset.data.push(data.value);
+                chart.data.labels.push(chart.data.labels.length);
+                chart.update();
             });
         });
     }
 
-    function updateChart(message) {
-        data.labels.push(data.labels.length);
-        data.datasets[0].data.push(message);
-        myChart.update();
+    function getRandomColor() {
+        return Math.floor(Math.random() * 256) + ',' +
+            Math.floor(Math.random() * 256) + ',' +
+            Math.floor(Math.random() * 256);
     }
 
     connect();
 </script>
+
 </body>
 </html>

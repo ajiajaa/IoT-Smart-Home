@@ -12,9 +12,10 @@ public class HomeController {
     public String home() {
         return "index";
     }
-    @MessageMapping("/send/message")
-    @SendTo("/topic/messages")
+    @MessageMapping("/send/message/{topic}")
+    @SendTo("/topic/{topic}")
     public String sendMessage(String message) {
+        System.out.println("received from MQTT : "+message);
         return message;
     }
 }
