@@ -1,7 +1,7 @@
 Repository for an IoT Smart Home using Spring Boot integrated with MQTT!
 This project consists of two applications : publisher (branch : publisher) and subscriber (branch : master).
 
-Features of publisher (**NOT YET TESTED**):
+Features of publisher (**NOT YET TESTED WITH REAL SENSORS**):
 1. Publish/send a topic (+)
 2. Publish/send multiple topics (-)
 
