@@ -11,6 +11,8 @@ import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 
+import com.fazecast.jSerialComm.SerialPort;
+
 import java.util.ArrayList;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -29,43 +31,38 @@ public class PubMQTTConfig {
     }
 
     private void sendMqttMessage(MqttPahoMessageHandler outboundAdapter) throws Exception {
-//        System.out.println("List COM ports");
-//        SerialPort comPorts[] = SerialPort.getCommPorts();
-//        for (int i = 0; i < comPorts.length; i++)
-//            System.out.println("comPorts[" + i + "] = " + comPorts[i].getDescriptivePortName());
-//        int port = 2;     // array index to select COM port
-//        comPorts[port].openPort();
-//        System.out.println("open port comPorts[" + port + "]  " + comPorts[port].getDescriptivePortName());
-//        comPorts[port].setBaudRate(9600);
-//        try {
-//            while (true)
-//            {
-//                // read serial port  and display data
-//                while (comPorts[port].bytesAvailable() > 0)
-//                {
-//                    byte[] readBuffer = new byte[comPorts[port].bytesAvailable()];
-//                    int numRead = comPorts[port].readBytes(readBuffer, readBuffer.length);
-//                    //System.out.print("Read " + numRead + " bytes from COM port: ");
-//                    for (int i = 0; i < readBuffer.length; i++) {
-//                        System.out.print((char) readBuffer[i]);
-//                        var message = MessageBuilder.withPayload(readBuffer[i]).build();
-//                        outboundAdapter.handleMessage(message);
-//                    }
-//                    //System.out.println();
-//                }
-//            }
-//        } catch (Exception e) { e.printStackTrace(); }
-//        comPorts[port].closePort();
-        ArrayList<String> arr= new ArrayList<>();
-        arr.add("halo");
-        arr.add("kamu");
-        arr.add("yang");
-        arr.add("di");
-        arr.add("sana");
-        for (String a: arr){
-            var message  = MessageBuilder.withPayload(a.toString()).build();
-            outboundAdapter.handleMessage(message);
-        }
+        System.out.println("List COM ports");
+        SerialPort comPorts[] = SerialPort.getCommPorts();
+        for (int i = 0; i < comPorts.length; i++)
+            System.out.println("comPorts[" + i + "] = " + comPorts[i].getDescriptivePortName());
+        int port = 0;     // array index to select COM port
+        comPorts[port].openPort();
+        System.out.println("open port comPorts[" + port + "]  " + comPorts[port].getDescriptivePortName());
+        comPorts[port].setBaudRate(9600);
+        try {
+            while (true) {
+                // read serial port  and display data
+                while (comPorts[port].bytesAvailable() > 0) {
+                    byte[] readBuffer = new byte[comPorts[port].bytesAvailable()];
+                    for (int i = 0; i < readBuffer.length; i++) {
+                        int numRead = comPorts[port].readBytes(readBuffer, readBuffer.length);
+                        var message = MessageBuilder.withPayload(new String(readBuffer, 0, numRead)).build();
+                        outboundAdapter.handleMessage(message);
+                    }
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        comPorts[port].closePort();
+        // ArrayList<String> arr= new ArrayList<>();
+        // arr.add("halo");
+        // arr.add("kamu");
+        // arr.add("yang");
+        // arr.add("di");
+        // arr.add("sana");
+        // for (String a: arr){
+        //     var message  = MessageBuilder.withPayload(a.toString()).build();
+        //     outboundAdapter.handleMessage(message);
+        // }
 
     }
 
