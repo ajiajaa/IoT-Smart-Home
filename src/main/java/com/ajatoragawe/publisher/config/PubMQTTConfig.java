@@ -10,10 +10,7 @@ import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
-
 import com.fazecast.jSerialComm.SerialPort;
-
-import java.util.ArrayList;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -41,37 +38,33 @@ public class PubMQTTConfig {
         comPorts[port].setBaudRate(9600);
         try {
             while (true) {
-                // read serial port  and display data
-                while (comPorts[port].bytesAvailable() > 0) {
-                    byte[] readBuffer = new byte[comPorts[port].bytesAvailable()];
-                    for (int i = 0; i < readBuffer.length; i++) {
-                        int numRead = comPorts[port].readBytes(readBuffer, readBuffer.length);
-                        var message = MessageBuilder.withPayload(new String(readBuffer, 0, numRead)).build();
-                        outboundAdapter.handleMessage(message);
-                    }
+            	Thread.sleep(100);
+                byte[] readBuffer = new byte[comPorts[port].bytesAvailable()];
+                int numRead = comPorts[port].readBytes(readBuffer, readBuffer.length);
+                String data = new String(readBuffer, 0, numRead);
+//                System.out.println("data : " + data);
+                if (data.equals("")) {
+                } else {
+                    String[] parts = data.split(" ");
+//                    System.out.println(parts[0]);
+//                    System.out.println(parts[1]);
+//                    System.out.println(parts[2]);
+//                    String timestamp = parts[0];
+                    String topic = parts[1];
+                    String mssg = parts[2];
+                    var message = MessageBuilder.withPayload(mssg).build();
+                    outboundAdapter.setDefaultTopic(topic);
+                    outboundAdapter.handleMessage(message);
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }
-        comPorts[port].closePort();
-        // ArrayList<String> arr= new ArrayList<>();
-        // arr.add("halo");
-        // arr.add("kamu");
-        // arr.add("yang");
-        // arr.add("di");
-        // arr.add("sana");
-        // for (String a: arr){
-        //     var message  = MessageBuilder.withPayload(a.toString()).build();
-        //     outboundAdapter.handleMessage(message);
-        // }
+//        comPorts[port].closePort();
 
     }
 
     @Bean
-    MqttPahoMessageHandler outboundAdapter(
-            @Value("${hivemq.topic}") String topic,
-            MqttPahoClientFactory factory){
+    MqttPahoMessageHandler outboundAdapter(MqttPahoClientFactory factory){
         var mh = new MqttPahoMessageHandler("producer", factory);
-        mh.setDefaultTopic(topic);
         return mh;
     }
 
