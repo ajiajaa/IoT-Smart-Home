@@ -1,125 +1,235 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
 <head>
     <meta charset="UTF-8">
-    <title>Real-time Chart</title>
+    <title>Real-Time Chart</title>
 </head>
-<body>
-<div>
-    <canvas id="humiChart"></canvas>
-</div>
-<div>
-    <canvas id="tempChart"></canvas>
-</div>
-<div>
-    <canvas id="motiChart"></canvas>
-</div>
-<div>
-    <canvas id="vibraChart"></canvas>
-</div>
-<div>
-    <canvas id="fireChart"></canvas>
-</div>
 
-<script src="
+<body>
+
+    <div class="container">
+        <div class="container text-center">
+            <div class="row row-cols-2">
+                <div class="col"><canvas id="humiChart"></canvas></div>
+                <div class="col"><canvas id="tempChart"></canvas></div>
+                <div class="col"><canvas id="motiChart"></canvas></div>
+                <div class="col"> <canvas id="vibraChart"></canvas></div>
+                <div class="col"> <canvas id="fireChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5 mb-5">
+        <div class="container text-center">
+            <h1 class="card-title pb-1" id="time">00:00</h1>
+            <div class="row row-cols-5">
+                <div class="col mt-5">
+                    <div id="humiBoard">
+                        <div class="card bg-success" style="width: w-50;">
+                            <div class="card-body">
+                                <h2 class="card-title pb-3">Humidity</h2>
+                                <div>
+                                    <h3 class="card-text d-inline" id="value-humi">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col mt-5">
+                    <div id="tempBoard">
+                        <div class="card bg-success" style="width: w-50;">
+                            <div class="card-body">
+                                <h2 class="card-title pb-3">Temperature</h2>
+                                <div>
+                                    <h3 class="card-text d-inline" id="value-temp">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col mt-5">
+                    <div id="motiBoard">
+                        <div class="card" style="width: w-50; background-color: green;" id="motiBg">
+                            <div class="card-body">
+                                <h2 class="card-title pb-3">Motion</h2>
+                                <h2 class="card-title p-2" id="notif-moti"></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col mt-5">
+                    <div id="vibraBoard">
+                        <div class="card" style="width: w-50; background-color: green;" id="vibraBg">
+                            <div class="card-body">
+                                <h2 class="card-title pb-3">Vibration</h2>
+                                <h2 class="card-title p-2" id="notif-vibra"></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col mt-5">
+                    <div id="fireBoard">
+                        <div class="card" style="width: w-50;  background-color: green;" id="fireBg">
+                            <div class="card-body">
+                                <h2 class="card-title pb-3">Fire</h2>
+                                <h2 class="card-title p-2" id="notif-fire"></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="
 https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js
 "></script>
-<script src="
+    <script src="
 https://cdn.jsdelivr.net/npm/stomp-websocket@2.3.4-next/lib/stomp.min.js
 "></script>
-<script src="
+    <script src="
 https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js
 "></script>
 
-<script th:inline="javascript">
-    var stompClient = null;
-    var ctxHumidity = document.getElementById('humiChart').getContext('2d');
-    var ctxTemperature = document.getElementById('tempChart').getContext('2d');
-    var ctxMotion = document.getElementById('motiChart').getContext('2d');
-    var ctxVibrator = document.getElementById('vibraChart').getContext('2d');
-    var ctxFire = document.getElementById('fireChart').getContext('2d');
-    var charts = {};
-    var topics = ['humiajat', 'tempajat', 'motiajat', 'vibrajat', 'fireajat'];
+    <script th:inline="javascript">
+        var stompClient = null;
+        var ctxHumidity = document.getElementById('humiChart').getContext('2d');
+        var ctxTemperature = document.getElementById('tempChart').getContext('2d');
+        var ctxMotion = document.getElementById('motiChart').getContext('2d');
+        var ctxVibrator = document.getElementById('vibraChart').getContext('2d');
+        var ctxFire = document.getElementById('fireChart').getContext('2d');
+        var charts = {};
+        var topics = ['humiajat', 'tempajat', 'motiajat', 'vibrajat', 'fireajat'];
 
-    topics.forEach(function (topic) {
-        charts[topic] = createChart(topic);
-    });
+        topics.forEach(function (topic) {
+            charts[topic] = createChart(topic);
+        });
 
-    function createChart(topic) {
-        var config = {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: topic,
-                    backgroundColor: 'rgba(' + getRandomColor() + ', 0.2)',
-                    borderColor: 'rgba(' + getRandomColor() + ', 1)',
-                    borderWidth: 1,
-                    data: []
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+        function createChart(topic) {
+            var config = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: topic,
+                        backgroundColor: 'rgba(' + getRandomColor() + ', 0.2)',
+                        borderColor: 'rgba(' + getRandomColor() + ', 1)',
+                        borderWidth: 1,
+                        data: []
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        };
+            };
 
-        return new Chart(getContextByTopic(topic), config);
-    }
-
-    function getContextByTopic(topic) {
-        switch (topic) {
-            case 'humiajat':
-                return ctxHumidity;
-            case 'tempajat':
-                return ctxTemperature;
-            case 'motiajat':
-                return ctxMotion;
-            case 'vibrajat':
-                return ctxVibrator;
-            case 'fireajat':
-                return ctxFire;
-            default:
-                // in case kalo ada topik nyasar
-                console.error("Topik tidak diketahui: " + topic);
-                return null;
+            return new Chart(getContextByTopic(topic), config);
         }
-    }
 
-    function connect() {
-        var socket = new SockJS('/ws');
-        stompClient = Stomp.over(socket);
-        stompClient.connect({}, function (frame) {
-            stompClient.subscribe('/topic/messages', function (message) {
-                var data = JSON.parse(message.body);
-                var topic = data.topic;
+        function getContextByTopic(topic) {
+            switch (topic) {
+                case 'humiajat':
+                    return ctxHumidity;
+                case 'tempajat':
+                    return ctxTemperature;
+                case 'motiajat':
+                    return ctxMotion;
+                case 'vibrajat':
+                    return ctxVibrator;
+                case 'fireajat':
+                    return ctxFire;
+                default:
+                    // in case kalo ada topik nyasar
+                    console.error("Topik tidak diketahui: " + topic);
+                    return null;
+            }
+        }
 
-                if (!charts[topic]) {
-                    console.error("Chart tidak ada untuk topik: " + topic);
-                    return;
-                }
+        function connect() {
+            var socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function (frame) {
+                stompClient.subscribe('/topic/messages', function (message) {
+                    var data = JSON.parse(message.body);
 
-                var chart = charts[topic];
-                var dataset = chart.data.datasets[0];
+                    var topic = data.topic;
 
-                dataset.data.push(data.value);
-                chart.data.labels.push(data.timestamp);
-                chart.update();
+                    if (!charts[topic]) {
+                        console.error("Chart tidak ada untuk topik: " + topic);
+                        return;
+                    }
+
+                    var tempTime = data.timestamp;
+                    document.getElementById('time').innerText = tempTime;
+
+                    if (topic === 'humiajat') {
+                        var humiValue = data.value;
+                        document.getElementById('value-humi').innerText = humiValue + " %";
+                    } else if (topic === 'tempajat') {
+                        var tempValue = data.value;
+                        document.getElementById('value-temp').innerText = tempValue + " °C";
+                    } else if (topic === 'motiajat') {
+                        var motiValue = data.value;
+                        if (motiValue >= 1000) {
+                            document.getElementById('notif-moti').innerText = "Gerakan terdeteksi!";
+                            document.getElementById("motiBg").style.backgroundColor = "red";
+                        } else {
+                            document.getElementById('notif-moti').innerText = "";
+                            document.getElementById("motiBg").style.backgroundColor = "green";
+
+
+                        }
+                    } else if (topic === 'vibrajat') {
+                        var vibraValue = data.value;
+                        if (vibraValue >= 900) {
+                            document.getElementById('notif-vibra').innerText = "Getaran terdeteksi!";
+                            document.getElementById("vibraBg").style.backgroundColor = "red";
+
+                        } else {
+                            document.getElementById('notif-vibra').innerText = "";
+                            document.getElementById("vibraBg").style.backgroundColor = "green";
+
+                        }
+                    } else if (topic === 'fireajat') {
+                        var fireValue = data.value;
+                        if (fireValue <= 200) {
+                            document.getElementById('notif-fire').innerText = "Api terdeteksi!";
+                            document.getElementById("fireBg").style.backgroundColor = "red";
+
+                        } else {
+                            document.getElementById('notif-fire').innerText = "";
+                            document.getElementById("fireBg").style.backgroundColor = "green";
+
+                        }
+                    }
+
+                    var chart = charts[topic];
+                    var dataset = chart.data.datasets[0];
+
+                    dataset.data.push(data.value);
+                    chart.data.labels.push(data.timestamp);
+                    chart.update();
+                });
             });
-        });
-    }
+        }
 
-    function getRandomColor() {
-        return Math.floor(Math.random() * 256) + ',' +
-            Math.floor(Math.random() * 256) + ',' +
-            Math.floor(Math.random() * 256);
-    }
+        function getRandomColor() {
+            return Math.floor(Math.random() * 256) + ',' +
+                Math.floor(Math.random() * 256) + ',' +
+                Math.floor(Math.random() * 256);
+        }
 
-    connect();
-</script>
+        connect();
+    </script>
 
 </body>
+
 </html>
