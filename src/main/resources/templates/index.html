@@ -6,10 +6,19 @@
 </head>
 <body>
 <div>
-    <canvas id="humidityChart"></canvas>
+    <canvas id="humiChart"></canvas>
 </div>
 <div>
-    <canvas id="temperatureChart"></canvas>
+    <canvas id="tempChart"></canvas>
+</div>
+<div>
+    <canvas id="motiChart"></canvas>
+</div>
+<div>
+    <canvas id="vibraChart"></canvas>
+</div>
+<div>
+    <canvas id="fireChart"></canvas>
 </div>
 
 <script src="
@@ -24,10 +33,13 @@ https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js
 
 <script th:inline="javascript">
     var stompClient = null;
-    var ctxHumidity = document.getElementById('humidityChart').getContext('2d');
-    var ctxTemperature = document.getElementById('temperatureChart').getContext('2d');
+    var ctxHumidity = document.getElementById('humiChart').getContext('2d');
+    var ctxTemperature = document.getElementById('tempChart').getContext('2d');
+    var ctxMotion = document.getElementById('motiChart').getContext('2d');
+    var ctxVibrator = document.getElementById('vibraChart').getContext('2d');
+    var ctxFire = document.getElementById('fireChart').getContext('2d');
     var charts = {};
-    var topics = ['humidityajat', 'temperatureajat'];
+    var topics = ['humiajat', 'tempajat', 'motiajat', 'vibrajat', 'fireajat'];
 
     topics.forEach(function (topic) {
         charts[topic] = createChart(topic);
@@ -60,10 +72,16 @@ https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js
 
     function getContextByTopic(topic) {
         switch (topic) {
-            case 'humidityajat':
+            case 'humiajat':
                 return ctxHumidity;
-            case 'temperatureajat':
+            case 'tempajat':
                 return ctxTemperature;
+            case 'motiajat':
+                return ctxMotion;
+            case 'vibrajat':
+                return ctxVibrator;
+            case 'fireajat':
+                return ctxFire;
             default:
                 // in case kalo ada topik nyasar
                 console.error("Topik tidak diketahui: " + topic);
@@ -88,7 +106,7 @@ https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js
                 var dataset = chart.data.datasets[0];
 
                 dataset.data.push(data.value);
-                chart.data.labels.push(chart.data.labels.length);
+                chart.data.labels.push(data.timestamp);
                 chart.update();
             });
         });

@@ -29,7 +29,21 @@ public class SubMQTTConfig {
                     System.out.println("New message!" + payload);
                     headers.forEach((k, v) -> System.out.println(k + "=" + v));
                     String topic = Objects.requireNonNull(headers.get("mqtt_receivedTopic")).toString();
-                    messagingTemplate.convertAndSend("/topic/messages", "{\"topic\":\"" + topic + "\",\"value\":" + payload + "}");
+                    String[] parts = payload.split(";");
+
+                    // Check if the payload has both timestamp and value
+                    if (parts.length == 2) {
+                        String timestamp = parts[0];
+                        String value = parts[1];
+
+                        // Create JSON object
+                        String jsonPayload = String.format("{\"topic\":\"%s\",\"timestamp\":\"%s\",\"value\":\"%s\"}", topic, timestamp, value);
+
+                        // Send JSON payload to WebSocket
+                        messagingTemplate.convertAndSend("/topic/messages", jsonPayload);
+                    } else {
+                        System.err.println("Invalid payload format: " + payload);
+                    }
                     return null;
                 })
                 .get();
