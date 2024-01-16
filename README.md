@@ -5,8 +5,9 @@ This project consists of two applications :
 - subscriber (branch : master)
 
 Features of publisher :
-1. Publish/send a topic (+)
-2. Publish/send multiple topics (+)
+1. Fetch datas from sensors (+)
+2. Publish/send a data (+)
+3. Publish/send to multiple topics (+)
 
 Features of subscriber:
 1. Subscribe a topic (+)
